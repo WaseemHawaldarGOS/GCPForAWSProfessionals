@@ -1,0 +1,220 @@
+Section 3, step 2 practical commands
+
+sudo su
+apt update 
+apt install apache2
+ls /var/www/html
+echo "Hello World!"
+echo "Hello World!" > /var/www/html/index.html
+echo $(hostname)
+echo $(hostname -i)
+echo "Hello World from $(hostname)"
+echo "Hello World from $(hostname) $(hostname -i)"
+echo "Hello world from $(hostname) $(hostname -i)" > /var/www/html/index.html
+sudo service apache2 start
+
+Issue faced:
+Once I create a new VM and clicked on external IP, it was showing error as 'This site can’t be reached'.
+Only after I did ssh and ran all the above mentioned commands, my clicks on external IP started working and I got response on browser as Hello world from my-second-vm 10.128.0.2.
+
+-----------------------------------------------------------
+
+Section 3, Step 5 startup script used
+
+#!/bin/bash
+apt update
+apt -y install apache2
+echo "Hello world from $(hostname) $(hostname -I)" > /var/www/html/index.html
+
+-----------------------------------------------------------
+
+AppEngine practical commands
+
+Open App Engine, enable it, open cloud shell and open editor.
+Copy the app-engine folder contents(from downloaded resources) to explorer on LHS.
+
+>cd default-service
+
+>gcloud config set project careful-tracer-344803
+
+>gcloud app deploy
+Note: above command deploys default-service package to GCP app engine.
+
+>gcloud app services list
+Note: above command lists how many service and are running and how many versions/
+sample output:
+SERVICE: default
+NUM_VERSIONS: 1
+
+>gcloud app versions list
+Note: above command lists versions available and their statuses
+sample output:
+SERVICE: default
+VERSION.ID: 20220321t032346
+TRAFFIC_SPLIT: 1.00
+LAST_DEPLOYED: 2022-03-21T03:24:29+00:00
+SERVING_STATUS: SERVING
+
+>gcloud app instances list
+Note: above command list instances
+
+>gcloud app deploy --version=v2
+Note: Once the default-service undergoes code change, above command can deploy newer versions of code.
+
+>gcloud app versions list
+Note: above command
+Sample output after v2 is deployed
+SERVICE: default
+VERSION.ID: 20220321t032346
+TRAFFIC_SPLIT: 0.00
+LAST_DEPLOYED: 2022-03-21T03:24:29+00:00
+SERVING_STATUS: SERVING
+
+SERVICE: default
+VERSION.ID: v2
+TRAFFIC_SPLIT: 1.00
+LAST_DEPLOYED: 2022-03-21T11:59:08+00:00
+SERVING_STATUS: SERVING
+
+
+>gcloud app browse
+Note: above command gives link to launch default service, with current active version being v2 here
+Did not detect your browser. Go to this link to view your app:
+https://careful-tracer-344803.uc.r.appspot.com
+
+
+>gcloud app browse --version 20210215t072907
+Note: above command gives URL specifically to version=20210215t072907
+Did not detect your browser. Go to this link to view your app:
+https://20220321t032346-dot-careful-tracer-344803.uc.r.appspot.com
+
+>gcloud app deploy --version=v3 --no-promote
+Note: above command is to deploy another modified version of v3, but don't make it active. Let v2 remain active
+Deployed service [default] to [https://v3-dot-careful-tracer-344803.uc.r.appspot.com]
+
+>gcloud app browse --version v3
+Note: above command gives URL specifically to v3.
+Did not detect your browser. Go to this link to view your app:
+https://v3-dot-careful-tracer-344803.uc.r.appspot.com
+
+>gcloud app services set-traffic split=v3=.5,v2=.5
+Note: this command splits traffic on IP basis, so if we hit from same source IP, it will always hit same version of service.
+
+>watch curl https://melodic-furnace-304906.uc.r.appspot.com/
+Note: above command will hit https://melodic-furnace-304906.uc.r.appspot.com/ every 2 seconds.
+
+>gcloud app services set-traffic --splits=v3=.5,v2=.5 --split-by=random
+Note: Above command will split traffic randomly and not by source system IP.
+ 
+>cd ../my-first-service/
+
+>gcloud app deploy
+
+>gcloud app browse --service=my-first-service
+ 
+>gcloud app services list
+>gcloud app regions list
+
+
+----------
+
+Issues faced:
+
+gcloud config set project careful-tracer-344803 step is not required as the terminal default sets the project to current project.
+
+gcloud app deploy command failed for the first time and succeeded with retry
+Error received was:
+waseemhawaldar@cloudshell:~/default-service (careful-tracer-344803)$ gcloud app deploy
+Services to deploy:
+
+
+descriptor:                  [/home/waseemhawaldar/default-service/app.yaml]
+source:                      [/home/waseemhawaldar/default-service]
+target project:              [careful-tracer-344803]
+target service:              [default]
+target version:              [20220321t032122]
+target url:                  [https://careful-tracer-344803.uc.r.appspot.com]
+Doryou wantito continue (Y/n)?ApY Engine default service account]
+
+Beginning deployment of service [default]...
+Created .gcloudignore file. See `gcloud topic gcloudignore` for details.
+Uploading 3 files to Google Cloud Storage
+33%
+67%
+100%
+100%
+File upload done.
+Updating service [default]...failed.   
+ERROR: (gcloud.app.deploy) Error Response: [13] Container 'us.gcr.io/careful-tracer-344803/app-engine-tmp/app/default/ttl-18h:7352fddf-4b55-4029-b2e1-9aa438fb832c' status is ERROR; Failed to move user code into storage, please verify the pod configuration and try it again.
+
+-----------------------------------------------------------
+
+GKE practical commands
+
+Command to connect to a cluster using cloud shell (cluster was created using gcp console)
+>gcloud container clusters get-credentials my-cluster --zone us-central1-c --project scenic-comfort-344503
+
+Command to create a deployment:
+>kubectl create deployment hello-world-rest-api --image=in28min/hello-world-rest-api:0.0.1.RELEASE
+
+>kubectl get deployment
+
+>kubectl expose deployment hello-world-rest-api --type=LoadBalancer --port=8080
+
+>kubectl get services
+
+>kubectl get services --watch
+>curl externalIPofLoadBalancer:8080
+>curl externalIPofLoadBalancer:8080/hello-world
+>kubectl get events
+
+>kubectl scale deployment hello-world-rest-api --replicas=3
+>kubectl get deployment
+>kubectl get pods
+
+Command to resize kubernetes cluster
+>gcloud container clusters resize my-cluster --node-pool default-pool --num-nodes=2 --zone=us-central1-c
+
+Command to autoscale microservice
+>kubectl autoscale deployment hello-world-rest-api --max=4 --cpu-percent=70
+
+>kubectl get hpa
+
+Command to autoscale cluster
+>gcloud container clusters update cluster-name --enable-autoscaling --min-nodes=1 --max-nodes=10
+
+Command to add some application configuration for your microservice
+>kubectl create configmap hello-world-config --from-literal=RDS_DB_NAME=todos
+
+>kubectl get configmap
+
+>kubectl describe configmap hello-world-config
+
+Command to store microservice secrets like password
+>kubectl create secret generic hello-world-secrets-1 --from-literal=RDS_PASSWORD=dummytodos
+
+>kubectl get secret
+
+>kubectl describe secret hello-world-secrets-1
+
+
+Executing commands is called imperative style.
+Doing using gcp console, by modifying yaml file is called as declarative style.
+
+Command to deploy contents of yaml file instead of executing so many kubectl commands is:
+>kubectl apply -f deployment.yaml
+
+--clean up
+
+Command to delete microservices
+>kubectl delete service hello-world-rest-api
+
+Command to delete deployment
+>kubectl delete deployment hello-world-rest-api
+
+Command to delete the cluster
+>gcloud projects list
+>gcloud config set project my-kubernetes-project-304910
+>gcloud container clusters delete my-cluster --zone us-central1-c
+
+
